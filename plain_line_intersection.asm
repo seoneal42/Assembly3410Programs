@@ -17,66 +17,77 @@ Lf      EQU     0ah     ;line feed
 
 .DATA
     ;Points on the plane
-    point1_plane_x          WORD    ?
-    point1_plane_y          WORD    ?
-    point1_plane_z          WORD    ?
+    point1_plane_x              WORD    ?
+    point1_plane_y              WORD    ?
+    point1_plane_z              WORD    ?
 
-    point2_plane_x          WORD    ?
-    point2_plane_y          WORD    ?
-    point2_plane_z          WORD    ?
+    point2_plane_x              WORD    ?
+    point2_plane_y              WORD    ?
+    point2_plane_z              WORD    ?
     
-    point3_plane_x          WORD    ?
-    point3_plane_y          WORD    ?
-    point3_plane_z          WORD    ?
+    point3_plane_x              WORD    ?
+    point3_plane_y              WORD    ?
+    point3_plane_z              WORD    ?
 
     ;Points on the line
-    point1_line_x           WORD    ?
-    point1_line_y           WORD    ?
-    point1_line_z           WORD    ?
+    point1_line_x               WORD    ?
+    point1_line_y               WORD    ?
+    point1_line_z               WORD    ?
 
-    point2_line_x           WORD    ?
-    point2_line_y           WORD    ?
-    point2_line_z           WORD    ?
+    point2_line_x               WORD    ?
+    point2_line_y               WORD    ?
+    point2_line_z               WORD    ?
 
     ;variables for point-point subtraction
-    pps_x                   WORD    ?
-    pps_y                   WORD    ?
-    pps_z                   WORD    ?
+    pps_x                       WORD    ?
+    pps_y                       WORD    ?
+    pps_z                       WORD    ?
 
     ;variables for cross-product
-    cp_x                    WORD    ?
-    cp_y                    WORD    ?
-    cp_z                    WORD    ?
+    cp_x                        WORD    ?
+    cp_y                        WORD    ?
+    cp_z                        WORD    ?
 
     ;variables for dot-product
-    dp                      WORD    ?
+    dp                          WORD    ?
 
     ;variables for normal
-    n_x                     WORD    ?
-    n_y                     WORD    ?
-    n_z                     WORD    ?
-    normal_temp_x           WORD    ?
-    normal_temp_y           WORD    ?
-    normal_temp_z           WORD    ?
+    n_x                         WORD    ?
+    n_y                         WORD    ?
+    n_z                         WORD    ?
+    normal_temp_x               WORD    ?
+    normal_temp_y               WORD    ?
+    normal_temp_z               WORD    ?
 
     ;variables for a
-    a_quotent               WORD    ?
-    a_remainder             WORD    ?
-    compute_a_temp          WORD    ?
+    a_numerator                 WORD    ?
+    a_denominator               WORD    ?
+
+    ;variables for point of intersection
+    poi_x_quotent               WORD    ?
+    poi_x_remainder             WORD    ?
+    poi_y_quotent               WORD    ?
+    poi_y_remainder             WORD    ?
+    poi_z_quotent               WORD    ?
+    poi_z_remainder             WORD    ?
+
+    poi_temp_x                  WORD    ?
+    poi_temp_y                  WORD    ?
+    poi_temp_z                  WORD    ?
 
     ;variables for input
-    input_temp              BYTE    40 DUP(?)
-    input_line_prompt_x     BYTE    "Enter x-coordinate of the line: ", 0
-    input_line_prompt_y     BYTE    "Enter y-coordinate of the line: ", 0
-    input_line_prompt_z     BYTE    "Enter z-coordinate of the line: ", 0
+    input_temp                  BYTE    40 DUP(?)
+    input_line_prompt_x         BYTE    "Enter x-coordinate of the line: ", 0
+    input_line_prompt_y         BYTE    "Enter y-coordinate of the line: ", 0
+    input_line_prompt_z         BYTE    "Enter z-coordinate of the line: ", 0
 
-    input_plane_prompt_x    BYTE    "Enter x-coordinate of the plane: ", 0
-    input_plane_prompt_y    BYTE    "Enter y-coordniate of the plane: ", 0
-    input_plane_prompt_z    BYTE    "Enter z-coordniate of the plane: ", 0
+    input_plane_prompt_x        BYTE    "Enter x-coordinate of the plane: ", 0
+    input_plane_prompt_y        BYTE    "Enter y-coordniate of the plane: ", 0
+    input_plane_prompt_z        BYTE    "Enter z-coordniate of the plane: ", 0
 
     ;utility variables
-    formatted_output        BYTE    50 DUP(?)
-                            BYTE    cr, Lf, 0
+    formatted_output            BYTE    50 DUP(?)
+                                BYTE    cr, Lf, 0
     
 ;ask user for x, y, z, storing into variables given
 point_input MACRO input_prompt_x, input_prompt_y, input_prompt_z, x, y, z
@@ -107,6 +118,39 @@ format_ouput MACRO x, y, z
     itoa formatted_output+15, z
     ;add closing parathensis
     mov formatted_output+21, ")"
+
+    ENDM
+
+;format the x, y, z, values given with () around them and commas separating
+;the values are decimal based
+format_output_decimal MACRO x_quotent, x_remainder, y_quotent, y_remainder, z_quotent, z_remainder
+
+    ;add '(' to beginning
+    mov formatted_output, "("
+    ;add  x remainder
+    itoa formatted_output+4, x_remainder ;assuming word size so 6 spaces
+    ;add '.'
+    mov formatted_output+6, "."
+    ;add x quotent
+    itoa formatted_output+1, x_quotent
+    ;add ','
+    mov formatted_output+10, ","
+    ;add y remainder
+    itoa formatted_output+15, y_remainder
+    ;add '.'
+    mov formatted_output+17, "."
+    ;add y quotent
+    itoa formatted_output+11, y_quotent
+    ;add ','
+    mov formatted_output+21, ","
+    ;add z remainder
+    itoa formatted_output+26, z_remainder
+    ;add '.'
+    mov formatted_output+28, "."
+    ;add z quotent
+    itoa formatted_output+22, z_quotent
+    ;add ")"
+    mov formatted_output+32, ")"
 
     ENDM
 
@@ -217,7 +261,7 @@ dot_product MACRO point1_x, point1_y, point1_z, point2_x, point2_y, point2_z
 
 ;calculates the normal given 4 points
 ;automatically stores in n_x, n_y, n_z
-normal MACRO point1_x, point1_y, point1_z, point2_x, point2_y, point2_z, point3_x, point3_y, point3_z, point4_x, point4_y, point4_z
+normal MACRO point1_x, point1_y, point1_z, point2_x, point2_y, point2_z, point3_x, point3_y, point3_z
     ;clear eax, ebx
     mov eax, 0
     mov ebx, 0
@@ -263,15 +307,116 @@ compute_a MACRO point1_x, point1_y, point1_z, point2_x, point2_y, point2_z, poin
     ;dot product with the normal
     dot_product n_x, n_y, n_z, pps_x, pps_y, pps_z
 
-    ;store dot product in temp variable
+    ;store dot product into a_numerator
     mov ax, dp
-    mov compute_a_temp, ax
+    mov a_numerator, ax
 
     ;compute demoninator
     
     ;point point subtraction with point 3 and point 2
     point_point_subtraction point3_x, point3_y, point3_z, point2_x, point2_y, point2_z
-    
+    ;dot product with the normal
+    dot_product n_x, n_y, n_z, pps_x, pps_y, pps_z
+
+    ;store dot product into a_denominator
+    mov ax, dp
+    mov a_denominator, ax
+
+    ENDM
+
+
+point_of_intersection MACRO
+    ;clear eax, ebx
+    mov eax, 0
+    mov ebx, 0
+
+    ;uses a_denominator * P(a) = a_numerator(p2 - p1) + a_denominator * p1
+
+    ;calculate point_point_subtraction
+    point_point_subtraction point2_line_x, point2_line_y, point2_line_z, point1_line_x, point1_line_y, point1_line_z
+
+    ;calculate a_denominator * x
+    mov ax, a_numerator
+    mov bx, pps_x
+    imul bx
+    mov poi_temp_x, ax
+    mov ax, a_denominator
+    mov bx, point1_line_x
+    imul bx
+    mov bx, poi_temp_x
+    add ax, bx
+    mov poi_temp_x, ax
+    ;division
+    mov ax, poi_temp_x
+    cwd
+    mov bx, a_denominator
+    idiv bx
+    mov poi_x_quotent, ax
+    mov poi_x_remainder, dx
+    ;clean up remainder
+    cleanup_remainder poi_x_remainder, a_denominator
+
+    ;calculate a_denominator * y
+    mov ax, a_numerator
+    mov bx, pps_y
+    imul bx
+    mov poi_temp_y, ax
+    mov ax, a_denominator
+    mov bx, point1_line_y
+    imul bx
+    mov bx, poi_temp_y
+    add ax, bx
+    mov poi_temp_y, ax
+    ;division
+    mov ax, poi_temp_y
+    cwd
+    mov bx, a_denominator
+    idiv bx
+    mov poi_y_quotent, ax
+    mov poi_y_remainder, dx
+    ;cleanup_remainder
+    cleanup_remainder poi_y_remainder, a_denominator
+
+    ;calculate a_denominator * z
+    mov ax, a_numerator
+    mov bx, pps_z
+    imul bx
+    mov poi_temp_z, ax
+    mov ax, a_denominator
+    mov bx, point1_line_z
+    imul bx
+    mov bx, poi_temp_z
+    add ax, bx
+    mov poi_temp_z, ax
+    ;division
+    mov ax, poi_temp_z
+    cwd
+    mov bx, a_denominator
+    idiv bx
+    mov poi_z_quotent, ax
+    mov poi_z_remainder, dx
+    ;cleanup_remainder
+    cleanup_remainder poi_z_remainder, a_denominator
+
+    ENDM
+
+cleanup_remainder remainder, denominator
+    ;clear eax, ebx
+    mov eax, 0
+    mov ebx, 0
+
+    mov ax, remainder
+    imul 100
+
+    mov bx, denominator
+
+    cwd
+
+    idiv bx
+    ;put quotient into remainder
+    mov remainder, ax
+    ENDM
+
 .CODE
     _start:
         ;input 3 points for plane
@@ -301,7 +446,22 @@ compute_a MACRO point1_x, point1_y, point1_z, point2_x, point2_y, point2_z, poin
         output formatted_output
         output carriage
 
+        ;calculate normal with the three planes
+        normal point1_plane_x, point1_plane_y, point1_plane_z, point2_plane_x, point2_plane_y, point2_plane_z, point3_plane_x, point3_plane_y, point3_plane_z
 
+        ;calculate a with any plane and both point of line
+        compute_a point3_plane_x, point3_plane_y, point3_plane_z, point1_line_x, point1_line_y, point1_line_z, point2_line_x, point2_line_y, point2_line_z
+
+        ;calculate point of intersect
+        point_of_intersection
+
+        ;format poi values
+        format_output_decimal poi_x_quotent, poi_x_remainder, poi_y_quotent, poi_y_remainder, poi_z_quotent, poi_z_remainder
+
+        ;output results
+        output carriage
+        output formatted_output
+        ouput carriage
         INVOKE ExitProcess, 0 ; exit with return code 0
     
     PUBLIC _start
