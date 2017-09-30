@@ -94,10 +94,13 @@ point_input MACRO input_prompt_x, input_prompt_y, input_prompt_z, x, y, z
 
     ;input x
     inputw input_prompt_x, x
+    outputW x
     ;input y
     inputw input_prompt_y, y
+    outputW y
     ;input z
     inputw input_prompt_z, z
+    outputW z
 
     ENDM
 
@@ -128,29 +131,29 @@ format_output_decimal MACRO x_quotent, x_remainder, y_quotent, y_remainder, z_qu
     ;add '(' to beginning
     mov formatted_output, "("
     ;add  x remainder
-    itoa formatted_output+4, x_remainder ;assuming word size so 6 spaces
+    itoa formatted_output+5, x_remainder ;assuming word size so 6 spaces
     ;add '.'
-    mov formatted_output+6, "."
+    mov formatted_output+7, "."
     ;add x quotent
     itoa formatted_output+1, x_quotent
     ;add ','
-    mov formatted_output+10, ","
+    mov formatted_output+11, ","
     ;add y remainder
-    itoa formatted_output+15, y_remainder
+    itoa formatted_output+16, y_remainder
     ;add '.'
-    mov formatted_output+17, "."
+    mov formatted_output+18, "."
     ;add y quotent
-    itoa formatted_output+11, y_quotent
+    itoa formatted_output+12, y_quotent
     ;add ','
-    mov formatted_output+21, ","
+    mov formatted_output+22, ","
     ;add z remainder
-    itoa formatted_output+26, z_remainder
+    itoa formatted_output+27, z_remainder
     ;add '.'
-    mov formatted_output+28, "."
+    mov formatted_output+29, "."
     ;add z quotent
-    itoa formatted_output+22, z_quotent
+    itoa formatted_output+23, z_quotent
     ;add ")"
-    mov formatted_output+32, ")"
+    mov formatted_output+33, ")"
 
     ENDM
 
@@ -222,7 +225,7 @@ cross_product MACRO point1_x, point1_y, point1_z, point2_x, point2_y, point2_z
     imul bx
     mov bx, cp_z
     sub bx, ax
-    mov cp_z bx
+    mov cp_z, bx
 
     ENDM
 
@@ -400,13 +403,22 @@ point_of_intersection MACRO
 
     ENDM
 
-cleanup_remainder remainder, denominator
+cleanup_remainder MACRO remainder, denominator
+    local NEGATE_REMAINDER, CONTINUE
+
     ;clear eax, ebx
     mov eax, 0
     mov ebx, 0
 
     mov ax, remainder
-    imul 100
+    mov cx, ax ;for checking if remainder is negative
+    mov bx, 100
+
+    jge CONTINUE ;if its not, then don't worry about negating
+NEGATE_REMAINDER:
+    neg bx
+CONTINUE:
+    imul bx
 
     mov bx, denominator
 
@@ -461,7 +473,7 @@ cleanup_remainder remainder, denominator
         ;output results
         output carriage
         output formatted_output
-        ouput carriage
+        output carriage
         INVOKE ExitProcess, 0 ; exit with return code 0
     
     PUBLIC _start
