@@ -126,6 +126,7 @@ format_ouput MACRO x, y, z
 
 ;format the x, y, z, values given with () around them and commas separating
 ;the values are decimal based
+;intentionally leaving extra padding between whole number and decimal incase of a 3 digit number
 format_output_decimal MACRO x_quotent, x_remainder, y_quotent, y_remainder, z_quotent, z_remainder
 
     ;add '(' to beginning
