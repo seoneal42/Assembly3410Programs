@@ -15,11 +15,18 @@ Lf      EQU     0ah     ;line feed
 
 .STACK 4096
 
+MAXSIZE EQU 100
+
 .DATA
+    ;player
+    players_score           WORD            ?
     ;vankins mile
-    vankin_mile_matrix      WORD    200     DUP(?)
+    vankin_mile_matrix      WORD    MAXSIZE     DUP(?)
     vankin_mile_height      WORD            ?
     vankin_mile_width       WORD            ?
+
+    ;temporary variables
+    temporary_array_element WORD            ?
 
     ;input
     input_height_prompt     BYTE    "Enter the height of the array: ", 0
@@ -93,6 +100,76 @@ array_output    MACRO   array_name, width, height
 
 ENDM
 
+;gets the element out the array given. automatically placed into temprorary_array_element
+get_element MACRO   array_name, row, col, cols
+    local done, loop_array
+    ;clear eax, ebx, ecx
+    mov eax, 0
+    mov ebx, 0
+    mov ecx, 0
+
+    ;calculate index
+    mov ax, row
+    mov bx, 1
+    sub ax, bx
+    mov bx, col
+    mov cx, 1
+    sub bx, cx
+    mov cx, cols
+    mul cx
+    add ax, bx ;index
+
+    ;loop through til location
+    lea ebx, array_name
+    mov cx, ax
+
+    loop_array:
+        cmp cx, 0
+        je done
+
+        add ebx, 2
+        dec cx
+        
+        jmp loop_array
+    done:
+        mov temporary_array_element, WORD PTR [ebx]
+ENDM
+
+;sets the address location to value given
+set_element MACRO   array_name, element,row, col, cols
+    local loop_array, done
+    ;clear eax, ebx, ecx
+    mov eax, 0
+    mov ebx, 0
+    mov ecx, 0
+
+    ;calculate index
+    mov ax, row
+    mov bx, 1
+    sub ax, bx
+    mov bx, col
+    mov cx, 1
+    sub bx, cx
+    mov cx, cols
+    mul cx
+    add ax, bx ;index
+
+    ;loop through til location
+    lea ebx, array_name
+    mov cx, ax
+
+    loop_array:
+        cmp cx, 0
+        je done
+
+        add ebx, 2
+        dec cx
+
+        jmp loop_array
+    done:
+        mov ax, element
+        mov [ebx], ax ;put element at location
+ENDM
 .CODE
     _start:
         read_array_input vankin_mile_matrix, vankin_mile_width, vankin_mile_height
