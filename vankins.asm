@@ -22,11 +22,14 @@ MAXSIZE EQU 100
     players_score           WORD            ?
     ;vankins mile
     vankin_mile_matrix      WORD    MAXSIZE     DUP(?)
-    vankin_mile_height      WORD            ?
-    vankin_mile_width       WORD            ?
+    vankin_mil_col      WORD            ?
+    vankin_mile_row       WORD            ?
 
     ;temporary variables
     temporary_array_element WORD            ?
+    temporary_input         WORD            ?
+    temporary_row           WORD            ?
+    temporary_col           WORD            ?
 
     ;input
     input_height_prompt     BYTE    "Enter the height of the array: ", 0
@@ -72,15 +75,15 @@ read_array_input    MACRO   array_name, width, height
 ENDM
 
 ;print out array given width and height
-array_output    MACRO   array_name, width, height
+array_output    MACRO   array_name, row, col
     local done
     ;clear out ax,bx,cx
     mov eax, 0
     mov ebx, 0
     mov ecx, 0
 
-    mov ax, width
-    mov bx, height
+    mov ax, row
+    mov bx, col
     mul bx
     
     lea ebx, array_name
@@ -132,7 +135,8 @@ get_element MACRO   array_name, row, col, cols
         
         jmp loop_array
     done:
-        mov temporary_array_element, WORD PTR [ebx]
+        mov ax, [ebx]
+        mov temporary_array_element, ax
 ENDM
 
 ;sets the address location to value given
@@ -172,9 +176,10 @@ set_element MACRO   array_name, element,row, col, cols
 ENDM
 .CODE
     _start:
-        read_array_input vankin_mile_matrix, vankin_mile_width, vankin_mile_height
+        read_array_input vankin_mile_matrix, vankin_mile_row, vankin_mil_col
 
-        array_output vankin_mile_matrix, vankin_mile_width, vankin_mile_height
+        array_output vankin_mile_matrix, vankin_mile_row, vankin_mil_col
+
         INVOKE ExitProcess, 0; exit with return code 0
 
     PUBLIC _start
